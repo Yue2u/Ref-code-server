@@ -174,7 +174,6 @@ def test_register_with_ref_code(client: TestClient, verified_user: User):
     )
 
     ref_code = resp.json()["referral_code"]
-    print(ref_code)
 
     # Change emal to avoid 400 ALREADY REGISTERED exception
     resp = client.post(
