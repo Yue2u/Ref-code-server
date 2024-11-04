@@ -109,6 +109,9 @@ async def refresh_token(
     user_manager: Annotated[UserManager, Depends(get_user_manager)],
     refresh_token: Annotated[str | None, Cookie()] = None,
 ):
+    """Get new access token by refresh_token, stored in Cookies.
+    Since browser checks if cookies secure, this works only if app is set up on domain with https.
+    """
     if not refresh_token:
         raise HTTPException(status_code=401, detail="Refresh token not provided.")
 
