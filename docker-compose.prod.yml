@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgres:15-alpine
+    env_file:
+      - '.env'
+    expose:
+      - ${POSTGRESQL_PORT}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRESQL_DB}
+      POSTGRES_USER: ${POSTGREQL_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
+
+
+  redis:
+    image: redis:latest
+    env_file:
+      - '.env'
+    command: redis-server
+    expose:
+      - ${REDIS_PORT}
+    volumes:
+      - redis_data:/data
+
+  backend:
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: >
+      sh -c "sleep 5 && uv run alembic upgrade head &&
+             uv run uvicorn app.application:fastapi_app --host "0.0.0.0" --port 5000 --reload --proxy-headers"
+    ports:
+      - 5000:5000
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+    volumes:
+      - ./app:/app/app
+    lables:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`<Your domain>`) && (PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/openapi.json`))"
+      - "traefik.http.routers.backend.tls=true"
+      - "traefik.http.routers.backend.tls.certresolver=le"
+
+  traefik:
+    image: traefik:v3.1
+    ports:
+      - 80:80
+      - 443:443
+      - 8081:8080
+    volumes:
+      - ./traefik.prod.yml:/etc/traefik/traefik.yml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./le-certs:/le
+
+volumes:
+  db_data:
+  redis_data:
