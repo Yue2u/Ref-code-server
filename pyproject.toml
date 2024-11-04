@@ -1,0 +1,25 @@
+[project]
+name = "ref-code-server"
+version = "0.1.0"
+description = "Referral Code server with oauth2"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiosqlite>=0.20.0",
+    "alembic>=1.13.3",
+    "asyncpg>=0.30.0",
+    "fastapi-users[oauth,sqlalchemy]>=14.0.0",
+    "fastapi[standard]>=0.115.4",
+    "orjson>=3.10.11",
+    "pydantic-settings>=2.6.1",
+    "pytest-asyncio>=0.24.0",
+    "pytest>=8.3.3",
+    "redis>=5.2.0",
+    "sqlalchemy[asyncio]>=2.0.36",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "black>=24.10.0",
+    "isort>=5.13.2",
+]

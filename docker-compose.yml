@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:15-alpine
+    env_file:
+      - '.env'
+    expose:
+      - ${POSTGRESQL_PORT}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRESQL_DB}
+      POSTGRES_USER: ${POSTGREQL_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
+
+
+  redis:
+    image: redis:latest
+    env_file:
+      - '.env'
+    command: redis-server
+    expose:
+      - ${REDIS_PORT}
+    volumes:
+      - redis_data:/data
+
+  backend:
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: >
+      sh -c "sleep 8 && uv run alembic upgrade head &&
+             uv run uvicorn app.application:fastapi_app --host "0.0.0.0" --port 5000 --reload --proxy-headers"
+    ports:
+      - 5000:5000
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+    volumes:
+      - ./app:/app/app
+
+volumes:
+  db_data:
+  redis_data:
