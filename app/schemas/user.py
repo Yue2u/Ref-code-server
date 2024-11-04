@@ -2,7 +2,7 @@ import uuid
 from datetime import timedelta
 
 from fastapi_users import schemas
-from pydantic import BaseModel, Field, EmailStr, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class UserRead(schemas.BaseUser[uuid.UUID]):

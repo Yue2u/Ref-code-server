@@ -1,17 +1,17 @@
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-from sqlalchemy.orm.exc import ObjectDeletedError
+from fastapi_users.password import PasswordHelper
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.orm.exc import ObjectDeletedError
 from sqlalchemy.pool import StaticPool
 
-from fastapi_users.password import PasswordHelper
+from app.application import fastapi_app
+from app.db.db import get_session
 from app.db.models.base import Base
 from app.db.models.user import User
-from app.db.db import get_session
-from app.application import fastapi_app
 
 
 @pytest.fixture(name="session")

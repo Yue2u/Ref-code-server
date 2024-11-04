@@ -186,9 +186,12 @@ def get_register_router(
         try:
             if referral_code is not None:
                 referrer_doesnt_exist = HTTPException(
-                    status_code=400, detail="User with this referral code doesn't exist."
+                    status_code=400,
+                    detail="User with this referral code doesn't exist.",
                 )
-                referrer_id = await ref_code_manager.retieve_user_id_by_code(referral_code)
+                referrer_id = await ref_code_manager.retieve_user_id_by_code(
+                    referral_code
+                )
                 if referrer_id is None:
                     raise referrer_doesnt_exist
                 try:

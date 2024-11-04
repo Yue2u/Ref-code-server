@@ -11,10 +11,10 @@ from fastapi_users.authentication import (
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.db import get_session
-from app.db.models.user import User
 from app.db.models.oauth_account import OAuthAccount
-from app.ref_code_manager import ReferralCodeManager
+from app.db.models.user import User
 from app.db.redis import create_redis_client
+from app.ref_code_manager import ReferralCodeManager
 
 from .settings import settings as auth_settings
 from .user_db import MySQLAlchemyUserDatabase
@@ -31,13 +31,18 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     async def get_referrals(self, user_id: uuid.UUID) -> list[User]:
         return await self.user_db.get_referrals(user_id)
 
-    async def on_after_request_verify(self, user: User, token: str, request: Request | None = None) -> None:
+    async def on_after_request_verify(
+        self, user: User, token: str, request: Request | None = None
+    ) -> None:
         print(f"User {user.id} requested verification. Token: {token}.")
 
-    async def on_before_delete(self, user: User, request: Request | None = None) -> None:
+    async def on_before_delete(
+        self, user: User, request: Request | None = None
+    ) -> None:
         new_redis = create_redis_client()
         await ReferralCodeManager(new_redis).delete(user.id)
         await new_redis.aclose()
+
 
 async def get_user_manager(
     user_db: Annotated[MySQLAlchemyUserDatabase, Depends(get_user_db)]

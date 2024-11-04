@@ -1,12 +1,11 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, Request
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from fastapi_users.authentication.authenticator import Authenticator
 from fastapi_users.authentication.strategy import JWTStrategy
 from fastapi_users.authentication.transport.bearer import BearerResponse
 from fastapi_users.exceptions import UserNotExists
-
 
 from app.core.auth.auth import (
     User,
@@ -19,14 +18,14 @@ from app.core.auth.auth import (
     get_jwt_strategy,
     get_user_manager,
 )
-from app.core.auth.oauth2 import google_oauth_client, github_oauth_client
 from app.core.auth.auth_routers import get_auth_router, get_register_router
+from app.core.auth.oauth2 import github_oauth_client, google_oauth_client
 from app.core.auth.settings import settings as auth_settings
 from app.ref_code_manager import ReferralCodeManager, get_ref_code_manager
 from app.schemas.user import (
+    ReferralCodeExpiraton,
     ReferralCodeRead,
     ReferralCodeReadWithExpire,
-    ReferralCodeExpiraton,
     ReferralCodeRequest,
     UserCreate,
     UserRead,
@@ -72,16 +71,14 @@ router.include_router(
         google_oauth_client,
         auth_backend,
         auth_settings.OAUTH_GOOGLE_SECRET,
-        associate_by_email=True
+        associate_by_email=True,
     ),
     prefix="/auth/google",
     tags=["auth"],
 )
 router.include_router(
     fastapi_users_app.get_oauth_associate_router(
-        google_oauth_client,
-        UserRead,
-        auth_settings.OAUTH_GOOGLE_SECRET
+        google_oauth_client, UserRead, auth_settings.OAUTH_GOOGLE_SECRET
     ),
     prefix="/auth/associate/google",
     tags=["auth"],
@@ -91,16 +88,14 @@ router.include_router(
         github_oauth_client,
         auth_backend,
         auth_settings.OAUTH_GITHUB_SECRET,
-        associate_by_email=True
+        associate_by_email=True,
     ),
     prefix="/auth/github",
     tags=["auth"],
 )
 router.include_router(
     fastapi_users_app.get_oauth_associate_router(
-        github_oauth_client,
-        UserRead,
-        auth_settings.OAUTH_GITHUB_SECRET
+        github_oauth_client, UserRead, auth_settings.OAUTH_GITHUB_SECRET
     ),
     prefix="/auth/associate/github",
     tags=["auth"],
@@ -141,14 +136,9 @@ async def get_my_referrals(
     return UserReferrals(referrals=await user_manager.get_referrals(user.id))
 
 
-@router.post(
-    "/users/referrals/{user_id}",
-    tags=['users'],
-    response_model=UserReferrals
-)
+@router.post("/users/referrals/{user_id}", tags=["users"], response_model=UserReferrals)
 async def get_user_referrals(
-    user_manager: Annotated[UserManager, Depends(get_user_manager)],
-    user_id: uuid.UUID
+    user_manager: Annotated[UserManager, Depends(get_user_manager)], user_id: uuid.UUID
 ):
     try:
         user = await user_manager.get(user_id)
@@ -157,7 +147,7 @@ async def get_user_referrals(
     return UserReferrals(referrals=await user_manager.get_referrals(user.id))
 
 
-@router.post("/users/referral_code", tags=['users'], response_model=ReferralCodeRead)
+@router.post("/users/referral_code", tags=["users"], response_model=ReferralCodeRead)
 async def get_token_by_user_email(
     user_manager: Annotated[UserManager, Depends(get_user_manager)],
     ref_code_manager: Annotated[ReferralCodeManager, Depends(get_ref_code_manager)],
@@ -214,7 +204,9 @@ async def create_new_code(
             detail=f"You already have referral code {prev_ref_code}, that expires in {prev_ttl} seconds",
         )
 
-    return ReferralCodeReadWithExpire(referral_code=new_ref_code, expires_in=ttl.expires_in_seconds)
+    return ReferralCodeReadWithExpire(
+        referral_code=new_ref_code, expires_in=ttl.expires_in_seconds
+    )
 
 
 @router.delete(
